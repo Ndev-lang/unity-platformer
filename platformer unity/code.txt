@@ -1,0 +1,71 @@
+ private Rigidbody2D moveCharacter;
+    private Animator ani;
+    private enum State { idle, run, jump, falling };
+    private State state = State.idle;
+    private Collider2D coll;
+    [SerializeField] private LayerMask Ground;
+    [SerializeField] private float speed = 5f; 
+    [SerializeField] private float jumpforce = 5f; 
+    // Start is called before the first frame update
+    void Start()
+    {
+        moveCharacter = GetComponent<Rigidbody2D>();
+        ani = GetComponent<Animator>();
+        coll = GetComponent<Collider2D>();
+    }
+    // Update is called once per frame
+    void Update()
+    {
+        float hDirection = Input.GetAxis("Horizontal");
+        float vDirection = Input.GetAxis("Vertical");
+        if (hDirection < 0)
+        {
+            moveCharacter.velocity = new Vector2(-speed, 0);
+            transform.localScale = new Vector2(-1, 1);
+        }
+        else if (hDirection > 0)
+        {
+            moveCharacter.velocity = new Vector2(speed, 0);
+            transform.localScale = new Vector2(1, 1);
+        }
+        else
+        {
+
+        }
+        //if (vDirection > 0)
+        if (Input.GetButtonDown("Vertical") && coll.IsTouchingLayers(Ground))
+        {
+            moveCharacter.velocity = new Vector2(moveCharacter.velocity.x, jumpforce);
+            state = State.jump;
+        }
+        VelocityState();
+        ani.SetInteger("State", (int)state);
+
+    }
+    private void VelocityState()
+    {
+        if (state == State.jump)
+        {
+            if (moveCharacter.velocity.y < .2f)
+            {
+                state = State.falling;
+            }
+        }
+        else if (state == State.falling)
+        {
+            if (coll.IsTouchingLayers(Ground))
+            {
+                state = State.idle;
+            }
+        }
+        else if (Mathf.Abs(moveCharacter.velocity.x) > 2f)
+        {
+            state = State.run;
+        }
+        else
+        {
+            state = State.idle;
+        }
+    }
+}
+
